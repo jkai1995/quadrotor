@@ -275,11 +275,11 @@ void nrf_IRQ_interrupt(void)
 	else
 	{
 		recevMsg.eDataDire = eDataReceive;
-		OSTaskQPost (s_nrfTaskTCB,
-								 &recevMsg,
-								 sizeof(recevMsg),
-								 OS_OPT_POST_FIFO,
-								 &err);
+//		OSTaskQPost (s_nrfTaskTCB,
+//								 &recevMsg,
+//								 sizeof(recevMsg),
+//								 OS_OPT_POST_FIFO,
+//								 &err);
 	}
 }
 

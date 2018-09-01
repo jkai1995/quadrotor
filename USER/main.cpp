@@ -78,7 +78,7 @@ void start_task(void *p_arg)
 	//创建按键
  // err = key_task_create();
 
-	err = MOTOR_task_create();
+	//err = MOTOR_task_create();
 	//创建蜂鸣器任务	
 	err = BUZZ_task_create();
 

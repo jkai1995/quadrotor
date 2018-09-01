@@ -76,7 +76,7 @@ void BUZZ_task (void *p_arg)
 		else if( buzz_mode == BUZZ_OUT_CONTR)
 		{
 			buzz.rhythm_ms = 400;
-			buzz.volume = 0.05;
+			buzz.volume = 0.02;
 			buzz.play(low_half_per_rever+2,5);
 			buzz_mode = BUZZ_NONE;
 		}

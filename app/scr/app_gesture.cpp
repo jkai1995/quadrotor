@@ -54,22 +54,26 @@ void gesture_task (void *p_arg)
 	while(1)
 	{	
 		
-
-
-		INTX_DISABLE();//关闭所有中断 阻止任务调度
-		mpu_err = mpu_dmp_get_data(&(gest_6050.pitch),&(gest_6050.roll),&(gest_6050.yaw));  ///用时1.39ms
-		gest_6050.yaw = -gest_6050.yaw;
 		
-		MPU_Get_Gyroscope(&(gest_6050.roll_gyro),&(gest_6050.pitch_gyro),&(gest_6050.yaw_gyro));  ///用时0.29ms
-		MPU_Get_Accelerometer(&(gest_6050.roll_acc),&(gest_6050.pitch_acc),&(gest_6050.yaw_acc));////用时0.29ms
+		//TIM3_time_start();//////////////时间测量开始	
+
+		//INTX_DISABLE();//关闭所有中断 阻止任务调度
+		mpu_err = mpu_dmp_get_data(&(gest_6050.pitch),&(gest_6050.roll),&(gest_6050.yaw));  ///用时1.29ms
+		gest_6050.yaw = -gest_6050.yaw;
+		//run_time_us.time0 = TIM3_time_over();////////////时间测量结束
+		MPU_Get_Gyroscope(&(gest_6050.roll_gyro),&(gest_6050.pitch_gyro),&(gest_6050.yaw_gyro));  ///用时0.27ms
+		//run_time_us.time1 = TIM3_time_over();////////////时间测量结束
+		MPU_Get_Accelerometer(&(gest_6050.roll_acc),&(gest_6050.pitch_acc),&(gest_6050.yaw_acc));////用时0.27ms
+		//run_time_us.time2 = TIM3_time_over();////////////时间测量结束
 		gest_6050.yaw_gyro = -gest_6050.yaw_gyro;
 
-    INTX_ENABLE(); ////开启所有中断恢复任务调度
+    //INTX_ENABLE(); ////开启所有中断恢复任务调度
 
 		gest_6050.roll_gyro = gest_6050.roll_gyro - gesture_zero.roll_zero;
 		gest_6050.pitch_gyro = gest_6050.pitch_gyro - gesture_zero.pit_zero;
 		gest_6050.yaw_gyro = gest_6050.yaw_gyro - gesture_zero.yaw_zero;
 		
+		AngleTransforming((float)gest_6050.pitch_acc,(float)-gest_6050.roll_acc,(float)-gest_6050.yaw_acc,gest_6050.pitch,gest_6050.yaw,gest_6050.roll);
 		if(abs(gest_6050.pitch)>30 ||abs(gest_6050.roll)>30 || (abs(gest_6050.pitch)+abs(gest_6050.roll))>50)
 		{
 			motor_lock = LOCKED; //遥控超时，上锁飞机
@@ -88,8 +92,9 @@ void gesture_task (void *p_arg)
 		}
 		motor_solve();  ////解算电机输出
 		motor_input(st_motor.motor_1,st_motor.motor_2,st_motor.motor_3,st_motor.motor_4);
-
+//run_time_us.time3 = TIM3_time_over();////////////时间测量结束
 				WirelessDateSend(); ////用时2.48ms
+		//run_time_us.time4 = TIM3_time_over();////////////时间测量结束
 	
 		OSTimeDly(1,OS_OPT_TIME_PERIODIC,&err); //延时一个时钟节拍
 	}
@@ -122,7 +127,6 @@ void Gyro_zero_get(void)
 	gesture_zero.pit_zero = g_p/50;
 	gesture_zero.roll_zero = g_r/50;
 	gesture_zero.yaw_zero = g_y/50;
-	acc_yaw_zero = ac_y/50;
 	st_coordinate_earth_zero.Z = g_earth_z/50;
 }
 

@@ -57,7 +57,7 @@ void push(uint8 chanel,uint16 dat)
 }
 
 
-#define CASE6
+#define CASE7
 extern u32 tim_count,heigh_mm;
 
 extern u32 err_diff[4];
@@ -175,15 +175,15 @@ void WirelessDateSend (void)
 
 		#ifdef CASE6  ///////////////高度测量观测	
 	
-			push(0,sonic_time_raw[0]); //测距原始数据
-			push(1,sonic_time[0]);  //极值滤波后的
+			push(0,0); //测距原始数据
+			push(1,tim_count);  //极值滤波后的
 			push(2,heigh_mm);//转换成高度后的
 			push(3,((s16)PAin(1))*1000);//极值
 			push(4,run_time_us.time4/10); //
-			push(5,(s16)speed_h_real);//
+			push(5,0);//
 			push(6,((s16)level)*1000);//实际速度
-			push(7,run_time_us.time0/10);//此时检测到上升沿
-			push(8,run_time_us.time1/10);//下降沿
+			push(7,run_time_us.time0);//此时检测到上升沿
+			push(8,run_time_us.time1);//下降沿
 			push(9,run_time_us.time2/10);   //开始处理
 			
 			push(10,run_time_us.time3/10); ///总时间
@@ -192,17 +192,17 @@ void WirelessDateSend (void)
 ////////////
 		#ifdef CASE7  ///////////////垂直速度融合	
 	
-			push(0,sonic_time_raw[0]); //测距原始数据
-			push(1,sonic_time[0]);  //极值滤波后的
-			push(2,heigh_mm);//转换成高度后的
-			push(3,(s16)speed_h_diff);//
-			push(4,(s16)speed_h_real); //
-			push(5,(s16)(st_coordinate_earth.Z-st_coordinate_earth_zero.Z));//
-			push(6,(s16)st_HeighControler.InnerRing.P_out);//实际速度
-			push(7,(s16)st_HeighControler.InnerRing.I_out);//此时检测到上升沿
-			push(8,(s16)st_HeighControler.InnerRing.I_out);//下降沿
-			push(9,Lift_FeedForward);   //开始处理
-			push(10,battery*100);	
+			push(0,heigh_mm); //测距原始数据
+			push(1,st_coordinate_earth.Z);  //极值滤波后的
+			push(2,st_coordinate_earth.X);//转换成高度后的
+			push(3,st_coordinate_earth.Y);//极值
+			push(4,gest_6050.yaw_acc); //
+			push(5,gest_6050.pitch_acc);//
+			push(6,gest_6050.roll_acc);//实际速度
+			push(7,(s16)(gest_6050.pitch*100));//此时检测到上升沿
+			push(8,(s16)(gest_6050.yaw*100));//下降沿
+			push(9,(s16)(gest_6050.roll*100));   //开始处理
+			push(10,0); ///总时间
 	#endif
 ////////////
 
@@ -246,76 +246,6 @@ void WirelessDateSend (void)
 ///////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////	
 
-////////////////////////////////////////////////////////
-///////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////
-//	push(0,(s16)(gest_6050.pitch*100));  
-//  push(1,(s16)(gest_6050.roll*100));
-//  push(2,(s16)(gest_6050.yaw*10));
-//  
-//  push(3,gest_6050.pitch_gyro);
-//  
-//  push(4,Gyro_err_memory.pitch[0]);
-//  push(5,Acc_err_memory.pitch[0]);                         
-//  
-//  push(6,Argue_Gyro_ring.pitch.Sum_out);
-//  push(7,Argue_ACC_ring.pitch.Sum_out);
-//  push(8,Acc_err_memory.pitch[0]-Acc_err_memory.pitch[1]);
-//  
-//  push(9,Acc_err_memory.pitch[0]-Acc_err_memory.pitch[2]);     
-//  
-//  push(10,Acc_err_memory.pitch[0]-Acc_err_memory.pitch[3]);
-
-//  push(0,st_control_out.Upit);  
-//  push(1,st_control_out.Uroll);
-//  push(2,st_control_out.Uyaw);
-//  
-//  push(3,st_control_out.Ulift);
-//  
-//  push(4,Argue_ACC_ring.roll.Sum_out);
-//  push(5,st_motor.motor_2);                         
-//  
-//  push(6,st_motor.motor_3);
-//  push(7,st_motor.motor_4);
-//  push(8,control_data_struct.roll);
-//  
-//  push(9,control_data_struct.lift);     
-//  
-//  push(10,battery*100);
-
-//	push(0,sonic_time[0]);  
-//  push(1,heigh_mm);
-//  push(2,(s16)speed_h);
-//  push(3,speed_h_diff);
-//  push(4,(s16)height_out_I);
-//  push(5,height_out_P);                         
-//  push(6,height_out_D);
-//  push(7,height_out);
-//  push(8,speed_h_diff);
-//  
-//  push(9,control_data_struct.lift);     
-//  
-//  push(10,battery*100);	
-	
-
-  
-//	push(0,400);  
-//  push(1,heigh_mm);
-//  push(2,(s16)speed_h);
-//  push(3,height_out_diff);
-//  push(4,height_out_P);
-//  push(5,(s16)height_out_I);	
-//  push(6,height_out_D);
-//  push(7,err_mem[0]-err_mem[3]);
-//  push(8,height_out_P + height_out_diff);
-//  
-//  push(9,control_data_struct.lift);     
-//  
-//  push(10,battery*100);
-//	
 
   
 }

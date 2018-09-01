@@ -2,7 +2,7 @@
 
 #define PI 3.14159265358979f
 #define TRIGER_OUT PAout(3)
-#define SOUND_SPEED_M_S  340///定义声速 340m/s
+#define TIME_COUNT_MAX 25000
 void sonic_task (void *p_arg);
 void triger(void);
 void set_time(u32 count);
@@ -12,10 +12,13 @@ void set_time(u32 count);
 OS_TCB SONIC_TaskTCB;  //任务控制块
 CPU_STK SONIC_TASK_STK[SONIC_STK_SIZE];  //任务堆栈	
 
+
 LEVEL level = LOW;
 u32 heigh_mm;
-u32 tim_count;
-u8 sonic_time_out;
+u32 tim_count;//unit us，计时器返回的高电平时间
+u8 sonic_time_out;//计算超时次数
+
+
 //创建此任务			 
 //返回参数 : 错误代码
 OS_ERR sonic_task_create (void)
@@ -56,23 +59,18 @@ void sonic_task (void *p_arg)
 
 	while(1)
 	{
-		run_time_us.time3 = TIM3_time_over();////////////时间测量结束
-		TIM3_time_start();//////////////时间测量开始	
-//		run_time_us.time0 = 0;
-//		run_time_us.time1 = 0;
-//		run_time_us.time2 = 0;
-//		run_time_us.time4 = 0;
+TIM3_time_start();//////////////时间测量开始	
 		if(sonic_time_out ==0)  ////上次测量没有发生错误才开始测量
 		{
 			triger();//开始一次测距
-			run_time_us.time4 = TIM3_time_over();////////////时间测量结束
 			
-			p_msg = OSTaskQPend(3,///等待3个周期
+			
+			p_msg = OSTaskQPend(6,///等待6个周期
 													OS_OPT_PEND_BLOCKING,///等待期间阻塞任务
 													&msg_size,///消息大小//字节
 													NULL,////无时间戳
 													&err);
-run_time_us.time2 = TIM3_time_over();////////////时间测量结束
+
 			if(tim_count > 0)//已经检测到了数据
 			{
 				set_time(tim_count);
@@ -80,14 +78,14 @@ run_time_us.time2 = TIM3_time_over();////////////时间测量结束
 			else
 			{
 				sonic_time_out = 1; /////检测出错
-				tim_count = 25000; ///清楚时间测量
+				tim_count = TIME_COUNT_MAX; ///清楚时间测量
 				set_time(tim_count);
 
 			}
 		}
 		else
 		{
-			tim_count = 30000;
+			tim_count = TIME_COUNT_MAX;
 			set_time(tim_count);
 			sonic_time_out++;
 			if(sonic_time_out>5)///如果连续5个周期出错，表示可能是已经错过了下降沿
@@ -95,12 +93,8 @@ run_time_us.time2 = TIM3_time_over();////////////时间测量结束
 				sonic_time_out = 0;///强行重新测量
 			}
 		}
-
-		//	run_time_us.time0 = 0;
-			//run_time_us.time1 = 0;
-		///	run_time_us.time2 = 0;
 		
-		OSTimeDlyHMSM(0,0,0,20,OS_OPT_TIME_PERIODIC,&err);   //延时10ms
+	//	OSTimeDlyHMSM(0,0,0,20,OS_OPT_TIME_PERIODIC,&err);   //延时10ms
 	}
 }
 //////
@@ -188,164 +182,17 @@ extern "C"
 }
 ////////////////
 
-///
-float speed_h_diff; ///由超声波差分得到的速度
+
 s16 speed_h = 0;
-float speed_h_real;
-float acc_yaw_zero;
-u32 sonic_time_raw[10]; /////////超声波测量原始数据
-u32 sonic_time[10]; 
-s32 err_diff[6];
-s32 distance_mem_real[5];
-u8 sonic_lost_time;////超声波失效周期数
-s16 fault_range;///由于超生波失效时间延长，极值滤波容错范围需要扩大
-void set_time(u32 count)
+
+
+#define P1 0.1745
+#define P2 (-140.1)
+void set_time(u32 us)
 {
-	static u8 init = 0;
-	static u32 distance_mem[3];
-	u16 i;
-	
-	init++;
-	if(init>50)
-		init = 50;
-//	float weight;
-	
-	for(i = 9;i > 0;i--)
+	if(us < TIME_COUNT_MAX)
 	{
-		sonic_time_raw[i] = sonic_time_raw[i-1];
-	}
-	sonic_time_raw[0] = count;
-////////////////////
-//////第一步 极值滤波//////////
-////////////////	
-	err_diff[5] = err_diff[4];
-	err_diff[4] = err_diff[3];
-	err_diff[3] = err_diff[2];
-	err_diff[2] = err_diff[1];
-	err_diff[1] = err_diff[0];
-	err_diff[0] = (s16)(sonic_time_raw[0] - (sonic_time[0] + (s16)(speed_h_real*0.62)));///新数据和旧数据差距
-	
-
-	
-	
-////	///极值滤波  //////极值越大  新数据的可靠性就越小，是噪声的可能性越大，所以比重就越小
-////	if(err_diff[0]>300) //极值超过一定数值以后，新数据完全没有可靠性
-////		weight = 0;
-////	else if(err_diff[0]<200)
-////		weight = 1; ////极值够小，可靠性为1
-////	else
-////	{
-////		weight = 1 - (float)(err_diff[0] - 200)/100;
-////	}
-////	
-////	if(err_diff[0]>200 && err_diff[1]>200 && err_diff[2]>200 && err_diff[3]>200 && err_diff[4]>200 && err_diff[5]>200)//////////如果连续多长都差距很大，说明高度确实是有跳变
-////	{
-////		weight = 1;
-////	}
-////	
-	for(i = 9;i > 0;i--)
-	{
-		sonic_time[i] = sonic_time[i-1];
-	}
-	
-	fault_range = sonic_lost_time*60;///随着超声波失效实验延长逐渐扩大容错范围
-	if(fault_range>1000)
-		fault_range = 1000;
-	fault_range += 450;
-	
-//////	if(abs(err_diff[0]) > fault_range && init>=50)///init==50表示已经完成初始化，，没有完成初始化时不进行滤波
-//////	{
-//////		sonic_lost_time++;////超声波失效周期数
-//////		if(sonic_lost_time>50)
-//////			sonic_lost_time = 50;
-//////		if(sonic_lost_time<=20)////////丢失时间过长就停止积分
-//////		sonic_time[0] = sonic_time[0] + (s16)(speed_h_real*0.62);
-//////	}
-//////	else
-//////	{
-//////		sonic_lost_time = 0;
-//////		sonic_time[0] = sonic_time_raw[0];
-//////	}
-	if(sonic_time_raw[0]<20000)
-	{
-		sonic_time[0] = sonic_time_raw[0];
-	}
-	
-	
-	if(sonic_time[0]<700)
-		sonic_time[0] = 700;
-	
-///	sonic_time[0] = sonic_time_raw[0]*weight + sonic_time[0]*(1-weight);
-
-////////////////////////////////////////
-//////第二步 超声波时间转换为高度//////////
-////////////////////////////////////////	
-	
-	distance_mem[2] = distance_mem[1];
-	distance_mem[1] = distance_mem[0];
-	distance_mem[0] = SOUND_SPEED_M_S*sonic_time[0]/1000/2; ////////转换为高度后的原始数据
-	
-	
-////////////////////////////////////////
-//////第三步 高度中值滤波//////////
-////////////////////////////////////////	
-	
-	distance_mem_real[4] = distance_mem_real[3];
-	distance_mem_real[3] = distance_mem_real[2];
-	distance_mem_real[2] = distance_mem_real[1];
-	distance_mem_real[1] = distance_mem_real[0];////////中值滤波后的高度
-	
-	//heigh_mm
-	/////中值滤波
-	if((distance_mem[0]>=distance_mem[1]&&distance_mem[0]<=distance_mem[2])||(distance_mem[0]>=distance_mem[2]&&distance_mem[0]<=distance_mem[1]))
-	{
-		 distance_mem_real[0] = distance_mem[0];
-	}
-	else if((distance_mem[1]>=distance_mem[0]&&distance_mem[1]<=distance_mem[2])||(distance_mem[1]>=distance_mem[2]&&distance_mem[1]<=distance_mem[0]))
-	{
-		 distance_mem_real[0] = distance_mem[1];
-	}
-	else
-	{
-		 distance_mem_real[0] = distance_mem[2];
-	}
-	////////////////////////////////////////
-//////第四步 低通滤波//////////
-////////////////////////////////////////	
-////低通滤波作为输出
-	if(init>=50)
-		heigh_mm = distance_mem_real[0]*0.5 + distance_mem_real[1]*0.3 + distance_mem_real[2]*0.2;
-	else//////////完成初始化后再低通滤波
-		heigh_mm = distance_mem_real[0];
-	distance_mem_real[0] = heigh_mm;
-	
-/////////求垂直速度
-////超声波差分作为垂直速度
-	if(init>=50)////完成初始化后再求速度
-	{
-		speed_h_diff = 2.55*(distance_mem_real[0] - distance_mem_real[4]);
-	
-		if(speed_h_diff >= 800)
-		speed_h_diff = 800;
-	else if(speed_h_diff <= -800)
-		speed_h_diff = -800;
-	
-	/////坐标变换，，求垂直加速度
-AngleTransforming((float)gest_6050.pitch_acc,(float)-gest_6050.roll_acc,(float)-gest_6050.yaw_acc,gest_6050.pitch,gest_6050.yaw,gest_6050.roll);
-	
-///加速度积分//再///融合差分的垂直速度///
-	speed_h_real -=((st_coordinate_earth.Z - st_coordinate_earth_zero.Z) * 0.01);
-	if(sonic_time_raw[0]<20000)///
-		speed_h_real += ((speed_h_diff - speed_h_real)*0.04);
-	else
-		speed_h_real += ((speed_h_diff - speed_h_real)*0.01);
-	
-	
-
-	
-	//speed_h += (gest_6050.yaw_acc/cos_v-acc_yaw_zero)*0.0038 + (speed_h_diff - speed_h)*0.2;
-	speed_h = (s16)speed_h_diff;
-	//speed_h_real = 
+		heigh_mm = us * P1 + P2;
 	}
 }
 /////////////

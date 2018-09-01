@@ -69,19 +69,19 @@ void CReceiveSend::run(void)
 	SRSMessage *srMsg;
 	while(1)
 	{
-		srMsg = (SRSMessage*)OSTaskQPend (MILISECON_TO_TICK(20),
-																			OS_OPT_PEND_BLOCKING,
-																			&msg_size,
-																			&ts,
-																			&err);
+//		srMsg = (SRSMessage*)OSTaskQPend (MILISECON_TO_TICK(20),
+//																			OS_OPT_PEND_BLOCKING,
+//																			&msg_size,
+//																			&ts,
+//																			&err);
 		
-		if(err == OS_ERR_NONE || NRF_IRQ == 0 )
+		if( NRF_IRQ == 0 )
 		{
-			if(srMsg->eDataDire == eDataSend)
-			{
-				SEND_BUF(srMsg->data);
-			}
-			else// if(srMsg->eDataDire == eDataReceive)
+//			if(srMsg->eDataDire == eDataSend)
+//			{
+//				SEND_BUF(srMsg->data);
+//			}
+//			else// if(srMsg->eDataDire == eDataReceive)
 			{
 				if(NRF24L01_RxPacket(rece_buf)==0)
 				{
@@ -90,20 +90,22 @@ void CReceiveSend::run(void)
 				}
 			}
 		}
-		else if(err == OS_ERR_TIMEOUT)
+		else
 		{
 			m_outCtrl++;
-			if(m_outCtrl == 50)
+			if(m_outCtrl == 500)
 			{
 				
 				motor_lock = LOCKED; //遥控超时，上锁飞机
 				set_buzz_mod(BUZZ_OUT_CONTR);//遥控超时提示
 			}
-			if(m_outCtrl >= 60)
+			if(m_outCtrl >= 600)
 			{
-				m_outCtrl = 60;
+				m_outCtrl = 600;
 			}
 		}
+		
+		OSTimeDly(1,OS_OPT_TIME_PERIODIC,&err);
 	}
 }
 

@@ -16,6 +16,10 @@ Err_Memory_TypeDef Gyro_err_memory;        //角速度err记录
 Err_Memory_TypeDef Acc_err_memory;        //角度err记录
 //根据控制量解算电机输入
 
+#define ISXMODE 1
+#define ISCROSSMODE 0
+
+#if ISCROSSMODE
 void motor_solve (void)
 {
 	///十字结果
@@ -45,6 +49,41 @@ void motor_solve (void)
 	}
 	
 }
+#endif
+#if ISXMODE
+void motor_solve (void)
+{
+	///X字结果
+//	st_control_out.Upit = m3 + m4 - m2 - m1;    
+//	st_control_out.Uroll = m1 + m4 -m2 -m3;
+//	st_control_out.Uyaw = m1 +m3 - m2 - m4;
+//	st_control_out.Ulift = m1 + m2 + m3 + m4;
+//  根据此关系  可由左侧四个控制量解算四个电机的输出	  如下
+	
+	s16 pit = st_control_out.Upit;
+	s16 roll = st_control_out.Uroll;
+	s16 yaw = -st_control_out.Uyaw;
+	s16 lift = st_control_out.Ulift;
+	//lift = (lift > 300)?(300):(lift);
+	s16 m1 = 0,m2 = 0,m3 = 0,m4 = 0;
+	
+	if(motor_lock == UN_LOCKED&&out_control < 100) ///解锁电机后才能控制输出  遥控器信号没有超时才能输出
+	{
+		m1 = 0.25*(lift - pit + roll + yaw);
+		m2 = 0.25*(lift - pit - roll - yaw);
+		m3 = 0.25*(lift + pit - roll + yaw);
+		m4 = 0.25*(lift + pit + roll - yaw);
+	}
+
+	st_motor.motor_1 = m1;
+	st_motor.motor_2 = m2;
+	st_motor.motor_3 = m3;
+	st_motor.motor_4 = m4;
+
+	
+}
+#endif
+
 /////////
 
 
@@ -145,6 +184,7 @@ void balance_control (void)
 
 		
 		heigh_control(control_data_struct.lift,heigh_mm,speed_h);
+		//st_control_out.Ulift = 4*control_data_struct.lift;
 	}
 /////////////////////////////////////////////////////////////////////////////
 
@@ -304,7 +344,7 @@ void Gyro_Ring_yaw (s16 given_yaw)
 	
 	
 	
-	st_control_out.Uyaw = Argue_Gyro_ring.yaw.Sum_out;
+	st_control_out.Uyaw = 0;//Argue_Gyro_ring.yaw.Sum_out;
 	
 }
 ////////////

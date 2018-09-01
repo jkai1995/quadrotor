@@ -10,13 +10,13 @@
 //优先级3：开始任务 start_task()
 
 // 电机驱动任务
-#define MOTOR_TASK_PRIO   	4  //任务优先级
+#define MOTOR_TASK_PRIO   	6  //任务优先级
 
 // 姿态获取任务
 #define GESTURE_TASK_PRIO   5  //任务优先级
 
 // 超声波测距任务
-#define SONIC_TASK_PRIO			6  //任务优先级
+#define SONIC_TASK_PRIO			4  //任务优先级
 // 无线传输
 #define NRF2401_TASK_PRIO 	7  //任务优先级
 

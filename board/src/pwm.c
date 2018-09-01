@@ -356,6 +356,11 @@ void TIM3_time_start (void)
 	TIM3_Int_Init(60*1000,84-1);///时钟频率84M  84分频  =>  1 = 1us  最大数值65，536 约60ms
 	TIM_ClearFlag(TIM3,TIM_FLAG_Update);
 	TIM_SetCounter(TIM3,0);		//清空计数器
+//	run_time_us.time0 = 0;
+//	run_time_us.time1 = 0;
+//	run_time_us.time2 = 0;
+//	run_time_us.time3 = 0;
+//	run_time_us.time4 = 0;
 }
 
 u16 TIM3_time_over (void)
