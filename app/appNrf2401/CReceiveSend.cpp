@@ -1,8 +1,7 @@
 #include "CReceiveSend.h"
 #include "control_data.h"
 
-#define MILISECON_PER_TICK (1000/OSCfg_TickRate_Hz)
-#define MILISECON_TO_TICK(a) (a/(MILISECON_PER_TICK))
+
 static CReceiveSend _CRS;
 CReceiveSend* CReceiveSend::_instance = NULL;
 
@@ -26,7 +25,7 @@ CReceiveSend::CReceiveSend(void)
 bool CReceiveSend::initCRS(OS_TCB *tcb)
 {
 	m_pTcb = tcb;
-	
+
 	if(NRF24L01_Check() == 0)
 	{
 		m_Nrf2401IsExist = true;
@@ -36,29 +35,31 @@ bool CReceiveSend::initCRS(OS_TCB *tcb)
 	{
 		m_Nrf2401IsExist = false;
 	}
-	
+
 	return m_Nrf2401IsExist;
 }
 
 void CReceiveSend::sendData(u8 *data,u16 len )
 {
-	
-	if(m_pTcb == NULL 
-		||m_Nrf2401IsExist == false)
+
+	if(m_pTcb == NULL
+	        ||m_Nrf2401IsExist == false)
 	{
 		return;
 	}
-		
+
 	OS_ERR err;
 	m_sendMsg.data = data;
 	m_sendMsg.len = len;
 	OSTaskQPost (m_pTcb,
-							 &m_sendMsg,
-							 sizeof(m_sendMsg),
-							 OS_OPT_POST_FIFO,
-							 &err);
-							
+	             &m_sendMsg,
+	             sizeof(m_sendMsg),
+	             OS_OPT_POST_FIFO,
+	             &err);
+
 }
+
+uchar rs_state;
 
 void CReceiveSend::run(void)
 {
@@ -74,7 +75,7 @@ void CReceiveSend::run(void)
 //																			&msg_size,
 //																			&ts,
 //																			&err);
-		
+
 		if( NRF_IRQ == 0 )
 		{
 //			if(srMsg->eDataDire == eDataSend)
@@ -83,28 +84,31 @@ void CReceiveSend::run(void)
 //			}
 //			else// if(srMsg->eDataDire == eDataReceive)
 			{
-				if(NRF24L01_RxPacket(rece_buf)==0)
+				rs_state = NRF24L01_RxPacket(rece_buf);
+				if(rs_state == 0)
 				{
 					lode_rece_data(rece_buf);
 					m_outCtrl = 0;
+					set_buzz_mod(BUZZ_TR_ATTACHABLE);
 				}
 			}
 		}
 		else
 		{
 			m_outCtrl++;
-			if(m_outCtrl == 500)
+			if(m_outCtrl == 100)
 			{
-				
+
 				motor_lock = LOCKED; //遥控超时，上锁飞机
 				set_buzz_mod(BUZZ_OUT_CONTR);//遥控超时提示
 			}
-			if(m_outCtrl >= 600)
+			if(m_outCtrl >= 110)
 			{
-				m_outCtrl = 600;
+				set_buzz_mod(BUZZ_TR_BLOCKED);
+				m_outCtrl = 110;
 			}
 		}
-		
+
 		OSTimeDly(1,OS_OPT_TIME_PERIODIC,&err);
 	}
 }

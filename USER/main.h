@@ -6,13 +6,13 @@
 #ifdef __cplusplus
 extern "C"
 {
-	
+
 #endif
-	////////
-	
-	
-	/////////////////////////////////////////
-	///////////////////////////////////c”Ô—‘ø‚//////////////
+////////
+
+
+/////////////////////////////////////////
+///////////////////////////////////c”Ô—‘ø‚//////////////
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
 
@@ -22,7 +22,7 @@ extern "C"
 
 //////sys////
 #include "delay.h"
-#include "sys.h" 
+#include "sys.h"
 #include "usart.h"
 //#include "timer.h"
 //#include "spi.h"
@@ -33,7 +33,7 @@ extern "C"
 //#include "bsp_led.h"
 #include "bsp_key.h"
 //#include "lcd.h"
-//#include "cfont.h" 
+//#include "cfont.h"
 #include "pwm.h"
 #include "adc.h"
 #include "nRF24L01_API.h"
@@ -65,8 +65,8 @@ extern "C"
 #ifdef __cplusplus
 
 
-    /////////////////////////////////////////
-    ///////////////////////////////////c++ø‚//////////////
+/////////////////////////////////////////
+///////////////////////////////////c++ø‚//////////////
 #include "app_adc.h"
 #include "app_lcd.h"
 #include "app_2401.h"
@@ -80,6 +80,9 @@ extern "C"
 #include "FreeCars_uart.h"
 #include "CoordinateTransformation.h"
 #endif
+
+#define MILISECON_PER_TICK (1000/OSCfg_TickRate_Hz)
+#define MILISECON_TO_TICK(a) (a/(MILISECON_PER_TICK))
 
 ////////
 #endif

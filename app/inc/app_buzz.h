@@ -17,7 +17,9 @@ typedef enum
 	BUZZ_OUT_CONTR,//////遥控信号超时
 	BUZZ_ERR,//////////错误提示
 	BUZZ_NONE,/////////无操作
-	BUZZ_LOW_POWER/////////低压
+	BUZZ_LOW_POWER,/////////低压
+	BUZZ_TR_ATTACHABLE,
+	BUZZ_TR_BLOCKED,
 }BUZZ_MODE;//蜂鸣器提示音
 
 class Buzz

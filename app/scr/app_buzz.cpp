@@ -2,7 +2,7 @@
 
 
 OS_TCB BUZZ_TaskTCB;  //任务控制块
-CPU_STK BUZZ_TASK_STK[BUZZ_STK_SIZE];  //任务堆栈	
+CPU_STK BUZZ_TASK_STK[BUZZ_STK_SIZE];  //任务堆栈
 
 BUZZ_MODE lastb_mode = BUZZ_NONE;
 BUZZ_MODE buzz_mode = BUZZ_NONE;
@@ -10,28 +10,28 @@ BUZZ_MODE buzz_mode = BUZZ_NONE;
 
 OS_ERR BUZZ_task_create (void)
 {
-		OS_ERR err;
-		OSTaskCreate((OS_TCB 	* )&BUZZ_TaskTCB,		
-				 (CPU_CHAR	* )"Task3 BUZZ", 		
-                 (OS_TASK_PTR )BUZZ_task, 			
-                 (void		* )0,					
-                 (OS_PRIO	  )BUZZ_TASK_PRIO,     
-                 (CPU_STK   * )&BUZZ_TASK_STK[0],	
-                 (CPU_STK_SIZE)BUZZ_STK_SIZE/10,	
-                 (CPU_STK_SIZE)BUZZ_STK_SIZE,		
-                 (OS_MSG_QTY  )0,					
-                 (OS_TICK	  )0,  					
-                 (void   	* )0,					
-                 (OS_OPT      )OS_OPT_TASK_STK_CHK|OS_OPT_TASK_STK_CLR,
-                 (OS_ERR 	* )&err);	
-									
-		return err;
+	OS_ERR err;
+	OSTaskCreate((OS_TCB 	* )&BUZZ_TaskTCB,
+	             (CPU_CHAR	* )"Task3 BUZZ",
+	             (OS_TASK_PTR )BUZZ_task,
+	             (void		* )0,
+	             (OS_PRIO	  )BUZZ_TASK_PRIO,
+	             (CPU_STK   * )&BUZZ_TASK_STK[0],
+	             (CPU_STK_SIZE)BUZZ_STK_SIZE/10,
+	             (CPU_STK_SIZE)BUZZ_STK_SIZE,
+	             (OS_MSG_QTY  )0,
+	             (OS_TICK	  )0,
+	             (void   	* )0,
+	             (OS_OPT      )OS_OPT_TASK_STK_CHK|OS_OPT_TASK_STK_CLR,
+	             (OS_ERR 	* )&err);
+
+	return err;
 }
 ///////
 
 //const u16 low_half_per[7]={1911,1702,1516,1431,1275,1136,1012};
-const u16 hig_half_per[7]={477,425,379,357,318,284,253};
-const u16 low_half_per_rever[7]={1012,1136,1275,1431,1516,1702,1911};
+const u16 hig_half_per[7]= {477,425,379,357,318,284,253};
+const u16 low_half_per_rever[7]= {1012,1136,1275,1431,1516,1702,1911};
 
 const u16 low_power_per[2] = {379,477};
 //float volume[7] = {0.1,0.1,0.1,0.1,0.1,0.1,0.1};
@@ -41,7 +41,7 @@ void BUZZ_task (void *p_arg)
 	OS_ERR err;
 	Buzz buzz;
 
-	
+
 	while(1)
 	{
 
@@ -87,7 +87,24 @@ void BUZZ_task (void *p_arg)
 			buzz.play(low_power_per,2);
 			buzz_mode = BUZZ_NONE;
 		}
-		
+		else if(buzz_mode == BUZZ_TR_ATTACHABLE)
+		{
+			buzz.rhythm_ms = 100;
+			buzz.volume = 0.003;
+			buzz.play(hig_half_per+6,1);
+			OSTimeDly(MILISECON_TO_TICK(200),OS_OPT_TIME_DLY,&err);
+			buzz_mode = BUZZ_NONE;
+		}
+		else if(buzz_mode == BUZZ_TR_BLOCKED)
+		{
+			buzz.rhythm_ms = 100;
+			buzz.volume = 0.008;
+			buzz.play(low_half_per_rever,1);
+			OSTimeDly(MILISECON_TO_TICK(100),OS_OPT_TIME_DLY,&err);
+			buzz_mode = BUZZ_NONE;
+
+		}
+
 
 		OSTimeDlyHMSM(0,0,0,5,OS_OPT_TIME_PERIODIC,&err); //延时5ms
 
@@ -105,7 +122,7 @@ void set_buzz_mod(BUZZ_MODE md)
 Buzz::Buzz(void)
 {
 	//TIM5_PWM_Init(1000-1,84-1);
-	
+
 	period_us = 1000;
 }
 
@@ -141,7 +158,7 @@ void Buzz::play (u16 const *pt_halfper,float const *pt_vo,u16 const *Rhy,u8 cons
 
 
 /////////////播放  固定 音量 和 节奏
-void Buzz::play (u16 const *pt_halfper,u8 num)//音符半周期表 响几声 
+void Buzz::play (u16 const *pt_halfper,u8 num)//音符半周期表 响几声
 {
 	OS_ERR err;
 	u8 i;

@@ -1,0 +1,3 @@
+---- MILISECON_TO_TICK Matches (2 in 1 files) ----
+CReceiveSend.cpp (e:\study\quadrotor\stm32_mdk\·É¿Ø\quadrotor\app\appnrf2401):#define MILISECON_TO_TICK(a) (a/(MILISECON_PER_TICK))
+CReceiveSend.cpp (e:\study\quadrotor\stm32_mdk\·É¿Ø\quadrotor\app\appnrf2401)://		srMsg = (SRSMessage*)OSTaskQPend (MILISECON_TO_TICK(20),
