@@ -107,7 +107,7 @@ void lode_send_data (u8 buf[])
 //读取已接收的数据
 void lode_rece_data (u8 buf[])
 {
-
+Buzz* buzz = Buzz::getInstance();
 	control_data_struct.cmd = buf[1];
 	control_data_struct.lift = ((u16)buf[2]<<8) + buf[3];
 	control_data_struct.pitch = (s8)buf[4];
@@ -117,12 +117,12 @@ void lode_rece_data (u8 buf[])
 	if(control_data_struct.cmd == 1)
 	{
 		motor_lock = UN_LOCKED;
-		set_buzz_mod(BUZZ_UNLOCK);
+		buzz->set_buzz_mod(BUZZ_UNLOCK);
 	}
 	else if(control_data_struct.cmd == 2)
 	{
 		motor_lock = LOCKED;
-		set_buzz_mod(BUZZ_LOCK);
+		buzz->set_buzz_mod(BUZZ_LOCK);
 	}
 	
 
@@ -142,9 +142,8 @@ void lode_rece_data (u8 buf[])
 
 void CameraPercent (void)
 {
-
-	
-	if((control_data_struct.lift>=430) && heigh_mm > 350)
+	u32 heigh = get_sonic_heightmm();
+	if((control_data_struct.lift>=430) && heigh > 350)
 	{
 		camerapercent = camerapercent + 5;
 	}
@@ -183,7 +182,7 @@ void balance_control (void)
 		
 
 		
-		heigh_control(control_data_struct.lift,heigh_mm,speed_h);
+		heigh_control(control_data_struct.lift,get_sonic_heightmm(),0);
 		//st_control_out.Ulift = 4*control_data_struct.lift;
 	}
 /////////////////////////////////////////////////////////////////////////////

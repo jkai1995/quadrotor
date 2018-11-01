@@ -38,6 +38,7 @@ void lcd_task (void *p_arg)
 	//TIM_SetCompare3(TIM2,300);
 	
 	site.x = 0;
+	u32 heigh;
 	while(1)
 	{
 //		i=0;
@@ -58,7 +59,8 @@ void lcd_task (void *p_arg)
 		site.y = 16*i;
 		LCD_str(site,str[i],WHITE,BLACK);
 		i=2;
-		sprintf((char *)str[i],"heigh:%8d",heigh_mm);
+		heigh = get_sonic_heightmm();
+		sprintf((char *)str[i],"heigh:%8d",heigh);
 		site.y = 16*i;
 		LCD_str(site,str[i],WHITE,BLACK);
 		i=4;

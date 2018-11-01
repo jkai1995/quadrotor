@@ -1,7 +1,7 @@
 #include "app_gesture.h"
 #include "includes.h"
 #include "os_app_hooks.h"
-
+#include "heightSolution.h"
 OS_TCB GESTURE_TaskTCB;  //任务控制块
 CPU_STK GESTURE_TASK_STK[GESTURE_STK_SIZE];  //任务堆栈	
 GYRO_ZERO_TypeDef gesture_zero;
@@ -33,6 +33,7 @@ s16 gyro_yaw_m[4];
 void gesture_task (void *p_arg)
 {
 	OS_ERR err;
+	Buzz* buzz = Buzz::getInstance();
 	MOTOR_init();//电机初始化
 	OSTimeDlyHMSM(0,0,3,0,OS_OPT_TIME_PERIODIC,&err);
 	CPU_SR_ALLOC();
@@ -40,10 +41,13 @@ void gesture_task (void *p_arg)
 	MPU_Init();  //初始化6050
 	mpu_dmp_init(); //初始化dmp
   uart2_init(115200); ///初始化uart
+#ifdef FREECAES_DMA_ENABLE
+	init_FreeCares();
+#endif
 	OS_CRITICAL_ENTER();//进入临界区
 	Gyro_zero_get();
 	OS_CRITICAL_EXIT();	//退出临界区
-	set_buzz_mod(BUZZ_TURN_ON);
+	buzz->set_buzz_mod(BUZZ_TURN_ON);
 	
 	
 	OSTaskSemPost(&SONIC_TaskTCB,///向超声波测距发送信号量表示开始运行
@@ -74,10 +78,11 @@ void gesture_task (void *p_arg)
 		gest_6050.yaw_gyro = gest_6050.yaw_gyro - gesture_zero.yaw_zero;
 		
 		AngleTransforming((float)gest_6050.pitch_acc,(float)-gest_6050.roll_acc,(float)-gest_6050.yaw_acc,gest_6050.pitch,gest_6050.yaw,gest_6050.roll);
+		heightSolution();
 		if(abs(gest_6050.pitch)>30 ||abs(gest_6050.roll)>30 || (abs(gest_6050.pitch)+abs(gest_6050.roll))>50)
 		{
 			motor_lock = LOCKED; //遥控超时，上锁飞机
-			set_buzz_mod(BUZZ_OUT_CONTR);//遥控超时提示
+			buzz->set_buzz_mod(BUZZ_OUT_CONTR);//遥控超时提示
 		}		
 	//	gest_6050.pitch_gyro = (long)(gyro_pit_m[0] + gyro_pit_m[1] + gyro_pit_m[2] + gyro_pit_m[3])/4;
 	//	gest_6050.roll_gyro = (long)(gyro_roll_m[0] + gyro_roll_m[1] + gyro_roll_m[2] + gyro_roll_m[3])/4;

@@ -1,5 +1,6 @@
 #include "sys.h"
-#include "usart.h"	
+#include "usart.h"
+#include "dma.h"
 ////////////////////////////////////////////////////////////////////////////////// 	 
 //如果使用ucos,则包括下面的头文件即可.
 #if SYSTEM_SUPPORT_OS
@@ -39,7 +40,9 @@ void uart2_init(u32 bound){
    //GPIO端口设置
   GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
+#if EN_USART2_RX
 	NVIC_InitTypeDef NVIC_InitStructure;
+#endif
 	
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD,ENABLE); //使能GPIOD时钟
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2,ENABLE);//使能USART2时钟
@@ -78,7 +81,7 @@ void uart2_init(u32 bound){
 
 	//Usart1 NVIC 配置
   NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;//串口2中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=3;//抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2;//抢占优先级2
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority =3;		//子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器、
@@ -87,7 +90,16 @@ void uart2_init(u32 bound){
 	
 }
 
+void init_Uart2_DMA(u8 *sendBuff,u16 len)
+{
+	MYDMA_Config(DMA1_Stream6,DMA_Channel_4,(u32)&USART2->DR,(u32)sendBuff,len);
+	USART_DMACmd(USART2,USART_DMAReq_Tx,ENABLE);  //使能串口的DMA发送 
+}
 
+void start_Uart2_DMA_send(u16 len)
+{
+	MYDMA_Enable(DMA1_Stream6,len);
+}
 ////////////
 
 //////////////////////////////////////////////////////////////////

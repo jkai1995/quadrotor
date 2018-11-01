@@ -1,3 +1,20 @@
----- MILISECON_TO_TICK Matches (2 in 1 files) ----
-CReceiveSend.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\appnrf2401):#define MILISECON_TO_TICK(a) (a/(MILISECON_PER_TICK))
-CReceiveSend.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\appnrf2401)://		srMsg = (SRSMessage*)OSTaskQPend (MILISECON_TO_TICK(20),
+---- run_time_us Matches (19 in 5 files) ----
+App_gesture.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):		//run_time_us.time0 = TIM3_time_over();////////////时间测量结束
+App_gesture.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):		//run_time_us.time1 = TIM3_time_over();////////////时间测量结束
+App_gesture.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):		//run_time_us.time2 = TIM3_time_over();////////////时间测量结束
+App_gesture.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr)://run_time_us.time3 = TIM3_time_over();////////////时间测量结束
+App_gesture.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):		//run_time_us.time4 = TIM3_time_over();////////////时间测量结束
+FreeCars_uart.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):	push(4,run_time_us.time4/10); //
+FreeCars_uart.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):	push(7,run_time_us.time0);//此时检测到上升沿
+FreeCars_uart.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):	push(8,run_time_us.time1);//下降沿
+FreeCars_uart.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):	push(9,run_time_us.time2/10);   //开始处理
+FreeCars_uart.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):	push(10,run_time_us.time3/10); ///总时间
+Pwm.c (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\src):ST_RunTime_us_TypeDef run_time_us; //计量程序运行时间
+Pwm.c (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\src)://	run_time_us.time0 = 0;
+Pwm.c (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\src)://	run_time_us.time1 = 0;
+Pwm.c (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\src)://	run_time_us.time2 = 0;
+Pwm.c (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\src)://	run_time_us.time3 = 0;
+Pwm.c (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\src)://	run_time_us.time4 = 0;
+Pwm.h (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\board\inc):extern ST_RunTime_us_TypeDef run_time_us; //计量程序运行时间
+Sonic_irq.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):				run_time_us.time0 = TIM3_time_over();////////////时间测量结束
+Sonic_irq.cpp (e:\study\quadrotor\stm32_mdk\飞控\quadrotor\app\scr):				run_time_us.time1 = TIM3_time_over();////////////时间测量结束

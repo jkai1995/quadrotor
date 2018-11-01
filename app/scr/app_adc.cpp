@@ -45,6 +45,7 @@ void adc_task (void *p_arg)
 	u16 batt[10];
 	u8 i;
 	u32 he;
+	Buzz* buzz = Buzz::getInstance();
 	Adc_Init();
 	
 	for(he = 0;he <20;he++)//初始化batt数组 暂时借用变量he
@@ -72,7 +73,7 @@ void adc_task (void *p_arg)
 		battery = 5.314*3.3*he/10/4096;
 		
 		if(battery < (float)10.6)/////////////低压报警
-			set_buzz_mod(BUZZ_LOW_POWER);
+			buzz->set_buzz_mod(BUZZ_LOW_POWER);
 		
 		OSTimeDlyHMSM(0,0,0,20,OS_OPT_TIME_PERIODIC,&err);   //延时10ms
 	}

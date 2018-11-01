@@ -24,7 +24,7 @@ extern "C"
 #endif
 
 void AngleTransforming(float x,float y,float z,float AnglePitch,float AngleYaw,float AngleRoll);
-
+s16 get_earth_accz();
 
 
 #endif 

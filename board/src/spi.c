@@ -1,4 +1,5 @@
 #include "spi.h"
+#include "includes.h"
 //////////////////////////////////////////////////////////////////////////////////	 
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
 //ALIENTEK STM32F407开发板
@@ -149,11 +150,13 @@ void SPI_IRQ_EXTIX_Init(void)
 extern void nrf_IRQ_interrupt(void);
 void EXTI3_IRQHandler(void)
 {
+	OSIntEnter();
 	if(EXTI_GetITStatus(EXTI_Line3) == SET)
 	{
 		nrf_IRQ_interrupt();
 		EXTI_ClearITPendingBit(EXTI_Line3);
 	}
+	OSIntExit();
 }
 
 

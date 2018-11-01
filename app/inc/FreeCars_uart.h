@@ -17,17 +17,24 @@
 //1 头文件
 
 #include "main.h"
+#define FREECAES_DMA_ENABLE
+#define FREECAES_UART USART2 
 
-#define FREECAES_UART USART2       
+
 //USART_SendData(USART1, USART_RX_BUF[t]); 
+#ifdef FREECAES_DMA_ENABLE
+#define FREECAES_DMA_INIT(buff,len) init_Uart2_DMA(buff,len)
+#define FREECAES_DMA_SEND(len) start_Uart2_DMA_send(len)
+#else
 #define FREECAES_SCI_SEND_CHANNEL(x) {USART_SendData (FREECAES_UART, x);while(USART_GetFlagStatus(USART2,USART_FLAG_TC)!=SET);}//等待发送结束  //保证sci发送函数 SCI_send()和sci.c中定的匹配 
-
+#endif
 
 //以下不要修改
 #define UartRxBufferLen  100
 #define UartRxDataLen    41           //FreeCars上位机发送浮点数据MCU接收，不要改
 #define UartRxCmdLen     7	      //FreeCars上位机接收命令数据长度，不要改
 #define UartDataNum      11           //FreeCars上位机接收通道数，按照上位机设置改变!!!
+
 
 #define UartCmdNum  SerialPortRx.Buffer[SerialPortRx.Stack-3]//命令号
 #define UartCmdData SerialPortRx.Buffer[SerialPortRx.Stack-2]//命令数据
@@ -51,11 +58,14 @@ typedef struct
 }SerialPortType;
 
 //Export Varibales
-extern uint8 uSendBuf[UartDataNum*2];
+//extern uint8 uSendBuf[UartDataNum*2];
 extern SerialPortType SerialPortRx;
 extern double UartData[9];
 
 //Export Functions
+#ifdef FREECAES_DMA_ENABLE
+void init_FreeCares();
+#endif
 void sendDataToScope(void);
 void push(uint8 adr,uint16 date);
 void WirelessDateSend (void);

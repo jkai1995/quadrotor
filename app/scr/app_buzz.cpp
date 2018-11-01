@@ -4,8 +4,10 @@
 OS_TCB BUZZ_TaskTCB;  //任务控制块
 CPU_STK BUZZ_TASK_STK[BUZZ_STK_SIZE];  //任务堆栈
 
-BUZZ_MODE lastb_mode = BUZZ_NONE;
-BUZZ_MODE buzz_mode = BUZZ_NONE;
+
+
+static Buzz buzz;
+Buzz* Buzz::_instance = NULL;
 
 
 OS_ERR BUZZ_task_create (void)
@@ -36,86 +38,132 @@ const u16 low_half_per_rever[7]= {1012,1136,1275,1431,1516,1702,1911};
 const u16 low_power_per[2] = {379,477};
 //float volume[7] = {0.1,0.1,0.1,0.1,0.1,0.1,0.1};
 
+
+
 void BUZZ_task (void *p_arg)
 {
+	Buzz* buzz = Buzz::getInstance();
+	buzz->init(&BUZZ_TaskTCB);
+
+	buzz->run();
+}
+
+Buzz *Buzz::getInstance()
+{
+	return _instance;
+}
+void Buzz::init(OS_TCB *tcb)
+{
+	m_pTcb = tcb;
+
+}
+void Buzz::run()
+{
 	OS_ERR err;
-	Buzz buzz;
-
-
+	CPU_TS ts;
 	while(1)
 	{
+		OSTaskSemPend(MILISECON_TO_TICK(0),
+		              OS_OPT_PEND_BLOCKING,
+		              &ts,
+		              &err);
+		OSTaskSemSet(m_pTcb,
+		             0,
+		             &err);
 
-		if(buzz_mode == BUZZ_TURN_ON)
+		BUZZ_MODE buzz_mode = (inf_mode == BUZZ_NONE)?(background_mode):(inf_mode);
+		inf_mode = BUZZ_NONE;
+		switch(buzz_mode)
+		{
+		case BUZZ_TURN_ON:
 		{
 			buzz.rhythm_ms = 100;
 			buzz.volume = 0.1;
 			buzz.play(hig_half_per,4);///播放hig_half_per列表声音 4个音符
-			buzz_mode = BUZZ_NONE;
 		}
-		else if(buzz_mode == BUZZ_ERR)
+		break;
+		case  BUZZ_ERR:
 		{
 			buzz.rhythm_ms = 100;
 			buzz.volume = 0.1;
 			buzz.play(hig_half_per+5,1);
 			OSTimeDlyHMSM(0,0,1,0,OS_OPT_TIME_PERIODIC,&err); //延时1s
 		}
-		else if(buzz_mode == BUZZ_LOCK)
+		break;
+		case BUZZ_LOCK:
 		{
 			buzz.rhythm_ms = 300;
 			buzz.volume = 0.1;
 			buzz.play(low_half_per_rever,3);
-			buzz_mode = BUZZ_NONE;
 		}
-		else if(buzz_mode == BUZZ_UNLOCK)
+		break;
+		case BUZZ_UNLOCK:
 		{
 			buzz.rhythm_ms = 200;
 			buzz.volume = 0.1;
 			buzz.play(hig_half_per+4,3);
-			buzz_mode = BUZZ_NONE;
 		}
-		else if( buzz_mode == BUZZ_OUT_CONTR)
+		break;
+		case BUZZ_OUT_CONTR:
 		{
 			buzz.rhythm_ms = 400;
 			buzz.volume = 0.02;
 			buzz.play(low_half_per_rever+2,5);
-			buzz_mode = BUZZ_NONE;
 		}
-		else if(buzz_mode == BUZZ_LOW_POWER)
+		break;
+		case BUZZ_LOW_POWER:
 		{
 			buzz.rhythm_ms = 600;
 			buzz.volume = 0.8;
 			buzz.play(low_power_per,2);
-			buzz_mode = BUZZ_NONE;
 		}
-		else if(buzz_mode == BUZZ_TR_ATTACHABLE)
+		break;
+		case BUZZ_TR_ATTACHABLE:
 		{
 			buzz.rhythm_ms = 100;
 			buzz.volume = 0.003;
 			buzz.play(hig_half_per+6,1);
 			OSTimeDly(MILISECON_TO_TICK(200),OS_OPT_TIME_DLY,&err);
-			buzz_mode = BUZZ_NONE;
 		}
-		else if(buzz_mode == BUZZ_TR_BLOCKED)
+		break;
+		case BUZZ_TR_BLOCKED:
 		{
 			buzz.rhythm_ms = 100;
 			buzz.volume = 0.008;
 			buzz.play(low_half_per_rever,1);
 			OSTimeDly(MILISECON_TO_TICK(100),OS_OPT_TIME_DLY,&err);
-			buzz_mode = BUZZ_NONE;
 
 		}
-
-
-		OSTimeDlyHMSM(0,0,0,5,OS_OPT_TIME_PERIODIC,&err); //延时5ms
+		break;
+		default:
+			break;
+		}
 
 	}
+
 }
+
 //////
 ////设置蜂鸣器响声模式
-void set_buzz_mod(BUZZ_MODE md)
+void Buzz::set_buzz_mod(BUZZ_MODE md)
 {
-	lastb_mode = buzz_mode;
-	buzz_mode = md;
+	OS_ERR err;
+
+	if(m_pTcb == NULL)
+		return;
+	switch(md)
+	{
+	case BUZZ_TR_ATTACHABLE:
+	case BUZZ_TR_BLOCKED:
+		background_mode = md;
+		break;
+	default:
+		inf_mode = md;
+		break;
+	}
+	OSTaskSemPost(m_pTcb,
+	              OS_OPT_POST_FIFO,
+	              &err);
 }
 
 
@@ -124,6 +172,10 @@ Buzz::Buzz(void)
 	//TIM5_PWM_Init(1000-1,84-1);
 
 	period_us = 1000;
+	if(_instance == NULL)
+	{
+		_instance = this;
+	}
 }
 
 void Buzz::set_buzz(u16  h_pe,float vo)

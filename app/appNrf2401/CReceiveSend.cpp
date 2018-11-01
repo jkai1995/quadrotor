@@ -65,8 +65,8 @@ void CReceiveSend::run(void)
 {
 	OS_ERR err;
 	u8 rece_buf[32];
-	CPU_TS ts;
-	OS_MSG_SIZE msg_size;
+	Buzz* buzz = Buzz::getInstance();
+	//OS_MSG_SIZE msg_size;
 	SRSMessage *srMsg;
 	while(1)
 	{
@@ -89,7 +89,7 @@ void CReceiveSend::run(void)
 				{
 					lode_rece_data(rece_buf);
 					m_outCtrl = 0;
-					set_buzz_mod(BUZZ_TR_ATTACHABLE);
+					buzz->set_buzz_mod(BUZZ_TR_ATTACHABLE);
 				}
 			}
 		}
@@ -100,11 +100,11 @@ void CReceiveSend::run(void)
 			{
 
 				motor_lock = LOCKED; //遥控超时，上锁飞机
-				set_buzz_mod(BUZZ_OUT_CONTR);//遥控超时提示
+				buzz->set_buzz_mod(BUZZ_OUT_CONTR);//遥控超时提示
 			}
 			if(m_outCtrl >= 110)
 			{
-				set_buzz_mod(BUZZ_TR_BLOCKED);
+				buzz->set_buzz_mod(BUZZ_TR_BLOCKED);
 				m_outCtrl = 110;
 			}
 		}
